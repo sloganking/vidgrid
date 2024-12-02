@@ -75,6 +75,11 @@ fn get_video_duration(video_path: &Path) -> Result<u32, Box<dyn Error>> {
 
 /// Creates a 2x2 video grid from four input videos.
 ///
+/// This function takes four input video files, adjusts their frame rates and durations as specified,
+/// and combines them into a single output video arranged in a 2x2 grid layout. The output video
+/// will have a resolution defined by `output_width` and `output_height`, and its duration will
+/// be the lesser of the longest input video or the specified `duration`.
+///
 /// # Arguments
 ///
 /// * `vid1_path` - Path to the first video (top-left).
@@ -90,6 +95,36 @@ fn get_video_duration(video_path: &Path) -> Result<u32, Box<dyn Error>> {
 /// # Returns
 ///
 /// * `Result<(), Box<dyn Error>>` - Ok on success, Err otherwise.
+///
+/// # Errors
+///
+/// Returns an error if:
+/// - Any of the input video paths are invalid or inaccessible.
+/// - `ffprobe` or `ffmpeg` commands fail to execute.
+/// - There is an issue with processing the video streams.
+///
+/// # Examples
+///
+/// ```rust
+/// use std::path::Path;
+/// use your_crate::create_video_grid;
+///
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     create_video_grid(
+///         Path::new("video1.mp4"),
+///         Path::new("video2.mp4"),
+///         Path::new("video3.mp4"),
+///         Path::new("video4.mp4"),
+///         60,
+///         1920,
+///         1080,
+///         60.0,
+///         Path::new("output.mp4"),
+///     )?;
+///     Ok(())
+/// }
+/// ```
+
 fn create_video_grid(
     vid1_path: &Path,
     vid2_path: &Path,
