@@ -124,7 +124,6 @@ fn get_video_duration(video_path: &Path) -> Result<u32, Box<dyn Error>> {
 ///     Ok(())
 /// }
 /// ```
-
 fn create_video_grid(
     vid1_path: &Path,
     vid2_path: &Path,
