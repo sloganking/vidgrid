@@ -28,8 +28,12 @@ pub struct Args {
     pub height: u32,
 
     /// the maximum length of the output video in seconds. Videos longer than this will be truncated.
-    #[clap(long, default_value_t = 15)]
+    #[clap(long, default_value_t = u32::MAX)]
     pub duration: u32,
+
+    /// The maximum frame rate for the output video
+    #[clap(long, default_value_t = 60.0)]
+    pub max_framerate: f64,
 
     /// The path to which to write the output png file
     #[clap(
