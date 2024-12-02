@@ -73,6 +73,23 @@ fn get_video_duration(video_path: &Path) -> Result<u32, Box<dyn Error>> {
     Ok(dur_u32)
 }
 
+/// Creates a 2x2 video grid from four input videos.
+///
+/// # Arguments
+///
+/// * `vid1_path` - Path to the first video (top-left).
+/// * `vid2_path` - Path to the second video (top-right).
+/// * `vid3_path` - Path to the third video (bottom-left).
+/// * `vid4_path` - Path to the fourth video (bottom-right).
+/// * `duration` - Maximum duration of the output video in seconds.
+/// * `output_width` - Width of the output video.
+/// * `output_height` - Height of the output video.
+/// * `max_framerate` - Maximum frame rate for the output video.
+/// * `output_path` - Path to save the output video.
+///
+/// # Returns
+///
+/// * `Result<(), Box<dyn Error>>` - Ok on success, Err otherwise.
 fn create_video_grid(
     vid1_path: &Path,
     vid2_path: &Path,
