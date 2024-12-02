@@ -246,5 +246,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         args.max_framerate,
         &args.output_path,
     )?;
+
+    if args.open {
+        open::that(&args.output_path)?;
+    }
+
     Ok(())
 }

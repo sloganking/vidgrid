@@ -43,4 +43,8 @@ pub struct Args {
         help_heading = "OUTPUT"
     )]
     pub output_path: PathBuf,
+
+    /// Whether to open the output file after processing
+    #[clap(long)]
+    pub open: bool,
 }
