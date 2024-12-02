@@ -1,3 +1,4 @@
+// main.rs
 use std::error::Error;
 use std::path::Path;
 use std::process::Command;
@@ -5,6 +6,7 @@ use std::str::FromStr;
 
 mod options;
 
+/// Helper function to retrieve the frame rate of a video using ffprobe
 fn get_video_framerate(video_path: &Path) -> Result<f64, Box<dyn Error>> {
     let output = Command::new("ffprobe")
         .args(&[
@@ -32,6 +34,11 @@ fn get_video_framerate(video_path: &Path) -> Result<f64, Box<dyn Error>> {
         if parts.len() == 2 {
             let numerator = f64::from_str(parts[0])?;
             let denominator = f64::from_str(parts[1])?;
+            if denominator == 0.0 {
+                return Err(
+                    format!("Invalid frame rate denominator in {}", video_path.display()).into(),
+                );
+            }
             numerator / denominator
         } else {
             return Err(format!("Invalid frame rate format: {}", fps_str).into());
@@ -41,6 +48,33 @@ fn get_video_framerate(video_path: &Path) -> Result<f64, Box<dyn Error>> {
     };
 
     Ok(fps)
+}
+
+/// Helper function to retrieve the duration of a video using ffprobe
+fn get_video_duration(video_path: &Path) -> Result<u32, Box<dyn Error>> {
+    let output = Command::new("ffprobe")
+        .args(&[
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
+            video_path.to_str().unwrap(),
+        ])
+        .output()?;
+
+    if !output.status.success() {
+        return Err(format!("ffprobe failed for {}", video_path.display()).into());
+    }
+
+    let dur_str = String::from_utf8(output.stdout)?.trim().to_string();
+
+    // Parse the duration string to f64 and then convert to u32 (seconds)
+    let dur_f64 = f64::from_str(&dur_str)?;
+    let dur_u32 = dur_f64.floor() as u32;
+
+    Ok(dur_u32)
 }
 
 fn create_video_grid(
@@ -54,7 +88,7 @@ fn create_video_grid(
     max_framerate: f64,
     output_path: &Path,
 ) -> Result<(), Box<dyn Error>> {
-    // Get frame rates of all input videos
+    // Step 1: Retrieve Frame Rates of All Input Videos
     let fps1 = get_video_framerate(vid1_path)?;
     let fps2 = get_video_framerate(vid2_path)?;
     let fps3 = get_video_framerate(vid3_path)?;
@@ -68,7 +102,23 @@ fn create_video_grid(
         max_input_fps = max_framerate;
     }
 
-    // Calculate individual video dimensions for the 2x2 grid
+    // Step 2: Retrieve Durations of All Input Videos
+    let dur1 = get_video_duration(vid1_path)?;
+    let dur2 = get_video_duration(vid2_path)?;
+    let dur3 = get_video_duration(vid3_path)?;
+    let dur4 = get_video_duration(vid4_path)?;
+
+    // Determine the maximum duration among the inputs
+    let max_input_duration = dur1.max(dur2).max(dur3).max(dur4);
+
+    // Calculate the output duration: min(user_duration, max_input_duration)
+    let output_duration = if duration < max_input_duration {
+        duration
+    } else {
+        max_input_duration
+    };
+
+    // Step 3: Calculate Individual Video Dimensions for the 2x2 Grid
     let video_width = output_width / 2;
     let video_height = output_height / 2;
 
@@ -106,7 +156,7 @@ fn create_video_grid(
 
     let filter_complex = filters.join(" ");
 
-    // Execute the ffmpeg command with the new parameters
+    // Step 4: Execute the ffmpeg Command with the New Parameters
     let status = Command::new("ffmpeg")
         .arg("-i")
         .arg(vid1_path)
@@ -120,6 +170,8 @@ fn create_video_grid(
         .arg(&filter_complex)
         .arg("-map")
         .arg("[final]")
+        .arg("-t")
+        .arg(&output_duration.to_string())
         .arg("-vsync")
         .arg("2") // Ensure frame duplication is handled correctly
         .arg("-y") // Overwrite output file if it exists
