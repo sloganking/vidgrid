@@ -9,17 +9,15 @@ mod options;
 /// Helper function to retrieve the frame rate of a video using ffprobe
 fn get_video_framerate(video_path: &Path) -> Result<f64, Box<dyn Error>> {
     let output = Command::new("ffprobe")
-        .args(&[
-            "-v",
-            "error",
-            "-select_streams",
-            "v:0",
-            "-show_entries",
-            "stream=r_frame_rate",
-            "-of",
-            "default=noprint_wrappers=1:nokey=1",
-            video_path.to_str().unwrap(),
-        ])
+        .arg("-v")
+        .arg("error")
+        .arg("-select_streams")
+        .arg("v:0")
+        .arg("-show_entries")
+        .arg("stream=r_frame_rate")
+        .arg("-of")
+        .arg("default=noprint_wrappers=1:nokey=1")
+        .arg(video_path)
         .output()?;
 
     if !output.status.success() {
@@ -53,15 +51,13 @@ fn get_video_framerate(video_path: &Path) -> Result<f64, Box<dyn Error>> {
 /// Helper function to retrieve the duration of a video using ffprobe
 fn get_video_duration(video_path: &Path) -> Result<u32, Box<dyn Error>> {
     let output = Command::new("ffprobe")
-        .args(&[
-            "-v",
-            "error",
-            "-show_entries",
-            "format=duration",
-            "-of",
-            "default=noprint_wrappers=1:nokey=1",
-            video_path.to_str().unwrap(),
-        ])
+        .arg("-v")
+        .arg("error")
+        .arg("-show_entries")
+        .arg("format=duration")
+        .arg("-of")
+        .arg("default=noprint_wrappers=1:nokey=1")
+        .arg(video_path)
         .output()?;
 
     if !output.status.success() {
